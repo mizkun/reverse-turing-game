@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /rooms/{roomId} {
+      allow read: if true;
+      allow write: if false;
+
+      match /secret/{doc} {
+        allow read: if false;
+        allow write: if false;
+      }
+
+      match /hostSecret/{doc} {
+        allow read: if false;
+        allow write: if false;
+      }
+
+      match /threads/{threadId} {
+        allow read: if true;
+        allow write: if false;
+      }
+
+      match /posts/{postId} {
+        allow read: if true;
+        allow write: if false;
+
+        match /secret/{doc} {
+          allow read: if false;
+          allow write: if false;
+        }
+      }
+
+      match /spyTokens/{tokenId} {
+        allow read: if false;
+        allow write: if false;
+      }
+
+      match /personas/{personaId} {
+        allow read: if false;
+        allow write: if false;
+      }
+
+      match /reports/{reporterUid} {
+        allow create: if false;
+        allow update: if false;
+        allow read: if request.auth != null
+                      && get(/databases/$(database)/documents/rooms/$(roomId)).data.status == "revealed";
+      }
+    }
+  }
+}

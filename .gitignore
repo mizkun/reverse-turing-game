@@ -9,11 +9,16 @@ coverage/
 # Production
 build/
 dist/
+functions/lib/
+
+# Firebase
+.firebase/
 
 # Misc
 .DS_Store
 .env
 .env.local
+*.secret
 .env.development.local
 .env.test.local
 .env.production.local
