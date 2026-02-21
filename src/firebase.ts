@@ -29,3 +29,4 @@ export const callVerifySpyToken = httpsCallable(functions, "verifySpyToken");
 export const callSubmitPost = httpsCallable(functions, "submitPost");
 export const callReportId = httpsCallable(functions, "reportId");
 export const callRevealResults = httpsCallable(functions, "revealResults");
+export const callTickAiPosts = httpsCallable(functions, "tickAiPosts");

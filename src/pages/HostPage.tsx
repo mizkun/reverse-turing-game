@@ -4,6 +4,7 @@ import {
   callVerifyHost,
   callStartRound,
   callRevealResults,
+  callTickAiPosts,
 } from "../firebase";
 import { useRoom } from "../hooks/useRoom";
 import { QRCodeSVG } from "qrcode.react";
@@ -31,6 +32,17 @@ export function HostPage() {
   }, [hostToken]);
 
   const room = useRoom(roomId || "");
+
+  // Tick AI posts every 10 seconds while playing
+  useEffect(() => {
+    if (!roomId || !room || room.status !== "playing") return;
+    const interval = setInterval(() => {
+      callTickAiPosts({ roomId }).catch(() => {});
+    }, 10000);
+    // Fire immediately on start
+    callTickAiPosts({ roomId }).catch(() => {});
+    return () => clearInterval(interval);
+  }, [roomId, room?.status]);
 
   const handleStart = async () => {
     if (!roomId || !hostToken) return;
