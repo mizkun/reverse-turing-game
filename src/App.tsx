@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { TeaserPage } from "./pages/TeaserPage";
+import { TopPage } from "./pages/TopPage";
 import { EntryPage } from "./pages/EntryPage";
 import { BoardPage } from "./pages/BoardPage";
 import { ThreadPage } from "./pages/ThreadPage";
@@ -14,6 +15,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<TeaserPage />} />
+        <Route path="/top" element={<TopPage />} />
         <Route path="/create" element={<CreateRoomPage />} />
         <Route path="/room/:roomId" element={<EntryPage />} />
         <Route path="/room/:roomId/board" element={<BoardPage />} />

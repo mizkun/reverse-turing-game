@@ -1,4 +1,5 @@
 import { getFirestore } from "firebase-admin/firestore";
+import * as logger from "firebase-functions/logger";
 
 const db = getFirestore();
 
@@ -6,15 +7,24 @@ const db = getFirestore();
  * Shared logic: calculate results and set status to "revealed"
  */
 export async function endRoundAndReveal(roomId: string) {
+  logger.info(`endRoundAndReveal: starting for room ${roomId}`);
+
   const roomRef = db.doc(`rooms/${roomId}`);
   const room = (await roomRef.get()).data();
-  if (!room) return;
-  if (room.status === "revealed") return;
+  if (!room) {
+    logger.error(`endRoundAndReveal: room ${roomId} not found`);
+    return;
+  }
+  if (room.status === "revealed" && room.result) {
+    logger.info(`endRoundAndReveal: room ${roomId} already revealed with result`);
+    return;
+  }
 
-  // Get all posts' isHuman flags
+  // Get all posts' isHuman flags (parallel reads)
   const postsSnap = await db.collection(`rooms/${roomId}/posts`).get();
   const authorIsHuman: Record<string, boolean> = {};
-  for (const postDoc of postsSnap.docs) {
+
+  const metaReads = postsSnap.docs.map(async (postDoc) => {
     const metaSnap = await db
       .doc(`${postDoc.ref.path}/secret/metadata`)
       .get();
@@ -22,7 +32,10 @@ export async function endRoundAndReveal(roomId: string) {
       const authorId = postDoc.data().authorId;
       authorIsHuman[authorId] = metaSnap.data()?.isHuman || false;
     }
-  }
+  });
+  await Promise.all(metaReads);
+
+  logger.info(`endRoundAndReveal: ${postsSnap.size} posts, ${Object.keys(authorIsHuman).length} authors`);
 
   // Score each report
   const reportsSnap = await db.collection(`rooms/${roomId}/reports`).get();
@@ -37,6 +50,8 @@ export async function endRoundAndReveal(roomId: string) {
     totalReports++;
     batch.update(reportDoc.ref, { isCorrect });
   }
+
+  logger.info(`endRoundAndReveal: ${totalReports} reports, ${correctCount} correct`);
 
   // Winner
   const gameState = (
@@ -54,11 +69,14 @@ export async function endRoundAndReveal(roomId: string) {
       ? Math.round((1 - correctCount / totalReports) * 100)
       : 50;
 
+  logger.info(`endRoundAndReveal: winner=${winner}, turingScore=${turingScore}`);
+
   batch.update(roomRef, {
     status: "revealed",
     result: { winner, turingScore },
   });
 
   await batch.commit();
+  logger.info(`endRoundAndReveal: committed for room ${roomId}`);
   return { winner, turingScore };
 }

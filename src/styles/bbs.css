@@ -192,6 +192,8 @@ a:hover { text-decoration: underline; text-shadow: 0 0 8px var(--glow); }
 .board-page { padding: 0 12px 80px; }
 .board-header {
   padding: 0; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+  background: var(--bg);
 }
 .sys-bar {
   display: flex; justify-content: space-between; align-items: center;
@@ -260,6 +262,13 @@ a:hover { text-decoration: underline; text-shadow: 0 0 8px var(--glow); }
    Thread Page (スレッド)
    ======================================== */
 .thread-page { padding: 0 0 120px; }
+.thread-sticky-header {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--bg);
+}
+.thread-sticky-header .board-header {
+  position: static;
+}
 .thread-header {
   display: flex; align-items: center; gap: 16px;
   padding: 12px 16px; border-bottom: 1px solid var(--border);
@@ -465,6 +474,20 @@ a:hover { text-decoration: underline; text-shadow: 0 0 8px var(--glow); }
   margin-top: 32px; font-size: 0.75em; color: #888;
   letter-spacing: 0.08em;
 }
+.result-nav {
+  margin-top: 40px; text-align: center;
+}
+.result-nav-link {
+  display: inline-block; padding: 10px 28px;
+  border: 1px solid var(--border); color: var(--text-muted);
+  background: transparent; font-family: inherit;
+  font-size: 0.75em; letter-spacing: 0.12em;
+  text-transform: uppercase; transition: all 0.15s;
+  cursor: pointer;
+}
+.result-nav-link:hover {
+  border-color: var(--green); color: var(--green);
+}
 
 /* ========================================
    Teaser Page
@@ -581,6 +604,49 @@ a:hover { text-decoration: underline; text-shadow: 0 0 8px var(--glow); }
 }
 .mock-state-toggle button.active { border-color: var(--green); color: var(--green); }
 .mock-hint { font-size: 0.75em; color: #333; margin-top: 12px; letter-spacing: 0.08em; }
+
+/* ========================================
+   Modal (Report Confirmation)
+   ======================================== */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-box {
+  width: 100%; max-width: 360px;
+  background: #111; border: 1px solid var(--border);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+}
+.modal-title {
+  padding: 12px 16px; font-size: 0.75em;
+  color: var(--red); letter-spacing: 0.15em;
+  text-transform: uppercase; font-weight: 500;
+  border-bottom: 1px solid var(--border);
+}
+.modal-body {
+  padding: 20px 16px; font-size: 0.85em;
+  color: #ccc; line-height: 2;
+}
+.modal-actions {
+  display: flex; border-top: 1px solid var(--border);
+}
+.modal-btn {
+  flex: 1; padding: 12px; background: transparent;
+  border: none; cursor: pointer; font-family: inherit;
+  font-size: 0.75em; letter-spacing: 0.12em;
+  text-transform: uppercase; transition: all 0.15s;
+}
+.modal-btn-cancel {
+  color: var(--text-muted);
+  border-right: 1px solid var(--border);
+}
+.modal-btn-cancel:hover { color: var(--text); background: #1a1a1a; }
+.modal-btn-confirm { color: var(--red); }
+.modal-btn-confirm:hover {
+  background: var(--red); color: var(--bg);
+}
 
 /* ========================================
    Mobile

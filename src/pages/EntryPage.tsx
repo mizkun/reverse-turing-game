@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-import { callJoinAsDetective, callVerifySpyToken } from "../firebase";
+import { callJoinAsDetective, callVerifySpyToken, initAuth } from "../firebase";
 import { useAuth } from "../hooks/useAuth";
 import { useRoom } from "../hooks/useRoom";
 
@@ -53,9 +53,23 @@ export function EntryPage() {
   const spyTokenParam = searchParams.get("spy");
 
   const handleCheck = async () => {
-    if (!roomId || !user || checked) return;
+    if (!roomId || checked) return;
     setChecked(true);
     setStatus("loading");
+
+    // Ensure auth is ready
+    let currentUser = user;
+    if (!currentUser) {
+      try {
+        const cred = await initAuth();
+        currentUser = cred.user;
+      } catch {
+        alert("認証に失敗しました。ページを再読み込みしてください。");
+        setChecked(false);
+        setStatus("idle");
+        return;
+      }
+    }
 
     try {
       if (spyTokenParam) {

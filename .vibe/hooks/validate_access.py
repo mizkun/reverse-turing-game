@@ -53,6 +53,7 @@ ROLE_EDIT_ALLOW = {
         "functions/*",
         "public/*",
         ".gitignore",
+        "README.md",
     ],
     "QA Engineer": [
         ".vibe/qa-reports/*",

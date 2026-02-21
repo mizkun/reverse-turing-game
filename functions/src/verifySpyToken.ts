@@ -5,7 +5,7 @@ import { generateId } from "./utils";
 const db = getFirestore();
 
 export const verifySpyToken = onCall(
-  { region: "asia-northeast1" },
+  { region: "asia-northeast1", minInstances: 1 },
   async (request) => {
     const { roomId, token } = request.data as {
       roomId: string;

@@ -1,10 +1,12 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import * as logger from "firebase-functions/logger";
+import { endRoundAndReveal } from "./endRound";
 
 const db = getFirestore();
 
 export const reportId = onCall(
-  { region: "asia-northeast1" },
+  { region: "asia-northeast1", minInstances: 1 },
   async (request) => {
     const { roomId, targetId } = request.data as {
       roomId: string;
@@ -24,7 +26,13 @@ export const reportId = onCall(
       .get();
     const personaRefs = personasSnap.docs.map((d) => d.ref);
 
-    return db.runTransaction(async (tx) => {
+    // Pre-count existing reports (outside transaction for simplicity)
+    const existingReportsSnap = await db
+      .collection(`rooms/${roomId}/reports`)
+      .get();
+    const existingReportCount = existingReportsSnap.size;
+
+    const txResult = await db.runTransaction(async (tx) => {
       const roomSnap = await tx.get(roomRef);
       const room = roomSnap.data();
       const existingReport = await tx.get(reportRef);
@@ -79,15 +87,22 @@ export const reportId = onCall(
       const remainingSpies = spyAuthorIds.filter((id: string) =>
         remainingActiveIds.includes(id)
       );
+      const allSpiesEliminated = remainingSpies.length === 0;
 
-      if (
-        spyAuthorIds.includes(targetId) &&
-        remainingSpies.length === 0
-      ) {
-        tx.update(roomRef, { status: "revealed" });
-      }
+      // Check if all detectives have now reported (+1 for this new report)
+      const detectiveCount: number = room.detectiveCount || 0;
+      const newReportCount = existingReportCount + 1;
+      const allDetectivesReported = detectiveCount > 0 && newReportCount >= detectiveCount;
 
-      return { success: true };
+      return { success: true, shouldEnd: allSpiesEliminated || allDetectivesReported };
     });
+
+    // After transaction: if game should end, run full scoring & reveal
+    if (txResult.shouldEnd) {
+      logger.info(`reportId: game ending in room ${roomId}, triggering endRoundAndReveal`);
+      await endRoundAndReveal(roomId);
+    }
+
+    return { success: true };
   }
 );

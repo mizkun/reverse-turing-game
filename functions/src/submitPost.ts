@@ -4,7 +4,7 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 const db = getFirestore();
 
 export const submitPost = onCall(
-  { region: "asia-northeast1" },
+  { region: "asia-northeast1", minInstances: 1 },
   async (request) => {
     const { roomId, threadId, content, spyToken } = request.data as {
       roomId: string;

@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useRoom } from "../hooks/useRoom";
 import { usePosts } from "../hooks/usePosts";
 import { usePlayerRole } from "../hooks/usePlayerRole";
@@ -19,11 +19,14 @@ export function ThreadPage() {
   const posts = usePosts(roomId!, threadId);
   const { isSpy, spyToken, spyAuthorId } = usePlayerRole(roomId!);
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [thread, setThread] = useState<Thread | null>(null);
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [hasReported, setHasReported] = useState(false);
+  const [reportTarget, setReportTarget] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const prevStatus = useRef(room?.status);
 
   // Load thread info
   useEffect(() => {
@@ -49,6 +52,14 @@ export function ThreadPage() {
     return unsub;
   }, [user, roomId]);
 
+  // Auto-navigate to result only when status transitions to "revealed"
+  useEffect(() => {
+    if (prevStatus.current === "playing" && room?.status === "revealed") {
+      navigate(`/room/${roomId}/result`, { replace: true });
+    }
+    prevStatus.current = room?.status;
+  }, [room?.status, roomId, navigate]);
+
   // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -73,16 +84,15 @@ export function ThreadPage() {
     setSubmitting(false);
   };
 
-  const handleReport = async (authorId: string) => {
-    if (
-      !window.confirm(
-        `本当にこのIDを通報しますか？\n\nID: ${authorId}\n\n通報は1回だけです。このIDは書き込みが停止します。`
-      )
-    )
-      return;
+  const handleReport = (authorId: string) => {
+    setReportTarget(authorId);
+  };
 
+  const confirmReport = async () => {
+    if (!reportTarget) return;
+    setReportTarget(null);
     try {
-      await callReportId({ roomId, targetId: authorId });
+      await callReportId({ roomId, targetId: reportTarget });
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "通報に失敗しました";
@@ -98,16 +108,17 @@ export function ThreadPage() {
 
   return (
     <div className="thread-page">
-      <header className="board-header">
-        <div className="sys-bar">
-          <span>REVERSE TURING SYSTEM v0.1</span>
-          {room.status === "playing" && <StatusBar room={room} />}
+      <div className="thread-sticky-header">
+        <header className="board-header">
+          <div className="sys-bar">
+            <span>REVERSE TURING SYSTEM v0.1</span>
+            {room.status === "playing" && <StatusBar room={room} />}
+          </div>
+        </header>
+        <div className="thread-header">
+          <Link to={`/room/${roomId}/board`}>← 戻る</Link>
+          <h2>【{thread.title}】</h2>
         </div>
-      </header>
-
-      <div className="thread-header">
-        <Link to={`/room/${roomId}/board`}>← 戻る</Link>
-        <h2>【{thread.title}】</h2>
       </div>
 
       <div className="posts-container">
@@ -171,6 +182,23 @@ export function ThreadPage() {
       {isSpy && isEliminated && (
         <div className="elimination-notice">
           あなたのアカウントは凍結されました。書き込みはできません。
+        </div>
+      )}
+
+      {reportTarget && (
+        <div className="modal-overlay" onClick={() => setReportTarget(null)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-title">REPORT CONFIRMATION</div>
+            <div className="modal-body">
+              <p>対象ID: <span className="hl-red">{reportTarget}</span></p>
+              <p>通報は1回のみ実行可能です。</p>
+              <p>対象のアカウントは即座に凍結されます。</p>
+            </div>
+            <div className="modal-actions">
+              <button className="modal-btn modal-btn-cancel" onClick={() => setReportTarget(null)}>CANCEL</button>
+              <button className="modal-btn modal-btn-confirm" onClick={confirmReport}>EXECUTE</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

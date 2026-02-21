@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useRoom } from "../hooks/useRoom";
 import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 
 interface ReportEntry {
@@ -14,17 +14,22 @@ export function ResultPage() {
   const room = useRoom(roomId!);
   const [reports, setReports] = useState<ReportEntry[]>([]);
 
+  // Listen to reports in real-time so isCorrect updates are captured
   useEffect(() => {
-    if (!roomId || room?.status !== "revealed") return;
-    getDocs(collection(db, `rooms/${roomId}/reports`)).then((snap) => {
-      setReports(
-        snap.docs.map((d) => ({
-          targetId: d.data().targetId,
-          isCorrect: d.data().isCorrect ?? null,
-        }))
-      );
-    });
-  }, [roomId, room?.status]);
+    if (!roomId) return;
+    const unsub = onSnapshot(
+      collection(db, `rooms/${roomId}/reports`),
+      (snap) => {
+        setReports(
+          snap.docs.map((d) => ({
+            targetId: d.data().targetId,
+            isCorrect: d.data().isCorrect ?? null,
+          }))
+        );
+      }
+    );
+    return unsub;
+  }, [roomId]);
 
   if (!room)
     return <div className="loading">読み込み中...</div>;
@@ -57,10 +62,14 @@ export function ResultPage() {
         <div className="result-reports">
           <div className="result-section-label">通報記録</div>
           {reports.map((r, i) => (
-            <div key={i} className={`result-report-row ${r.isCorrect ? "correct" : "wrong"}`}>
+            <div key={i} className={`result-report-row ${r.isCorrect === true ? "correct" : r.isCorrect === false ? "wrong" : ""}`}>
               <span className="result-report-id">ID:{r.targetId}</span>
-              <span className="result-report-truth">{r.isCorrect ? "HUMAN" : "AI"}</span>
-              <span className="result-report-verdict">{r.isCorrect ? "正解" : "誤報"}</span>
+              <span className="result-report-truth">
+                {r.isCorrect === true ? "HUMAN" : r.isCorrect === false ? "AI" : "---"}
+              </span>
+              <span className="result-report-verdict">
+                {r.isCorrect === true ? "正解" : r.isCorrect === false ? "誤報" : "判定中"}
+              </span>
             </div>
           ))}
         </div>
@@ -71,6 +80,7 @@ export function ResultPage() {
           <div className="result-section-label">TURING SCORE <span className="result-score-num">{result.turingScore}</span></div>
         </div>
       )}
+
     </div>
   );
 }

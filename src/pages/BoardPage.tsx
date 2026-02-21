@@ -1,12 +1,23 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useRoom } from "../hooks/useRoom";
 import { useThreads } from "../hooks/useThreads";
 import { StatusBar } from "../components/StatusBar";
+import { useEffect, useRef } from "react";
 
 export function BoardPage() {
   const { roomId } = useParams<{ roomId: string }>();
   const room = useRoom(roomId!);
   const threads = useThreads(roomId!);
+  const navigate = useNavigate();
+  const prevStatus = useRef(room?.status);
+
+  // Auto-navigate to result only when status transitions to "revealed"
+  useEffect(() => {
+    if (prevStatus.current === "playing" && room?.status === "revealed") {
+      navigate(`/room/${roomId}/result`, { replace: true });
+    }
+    prevStatus.current = room?.status;
+  }, [room?.status, roomId, navigate]);
 
   if (!room)
     return <div className="loading">接続中...</div>;
