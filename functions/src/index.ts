@@ -11,3 +11,4 @@ export { submitPost } from "./submitPost";
 export { reportId } from "./reportId";
 export { revealResults } from "./revealResults";
 export { aiPostScheduler } from "./aiScheduler";
+export { tickAiPosts } from "./tickAiPosts";

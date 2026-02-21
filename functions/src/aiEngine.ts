@@ -23,8 +23,20 @@ export async function generatePost(
 直近の投稿:
 ${context}
 
-上記の流れを読んで、自然な返信を1件だけ書いてください。本文のみ出力。レス番号やID等は不要。`;
+上記の流れを読んで、自然な返信を1件だけ書いてください。
+
+【絶対ルール】
+- 本文のみ出力。レス番号やID等は不要
+- 5chの匿名掲示板のノリで、自然な長さ（10〜100文字程度）
+- 短いレスが基本。「草」「それな」くらいの時もある
+- 長文禁止。最大でも2行まで
+- 説明口調禁止。会話しろ`;
 
   const result = await model.generateContent(prompt);
-  return result.response.text().trim();
+  let text = result.response.text().trim();
+  // Hard limit: truncate to 100 chars if model ignores instruction
+  if (text.length > 100) {
+    text = text.substring(0, 100);
+  }
+  return text;
 }
