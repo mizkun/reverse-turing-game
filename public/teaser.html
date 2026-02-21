@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reverse Turing | Are you AI?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+
+  :root {
+    --bg: #0a0a0a;
+    --fg: #e0e0e0;
+    --muted: #444;
+    --border: #222;
+    --green: #4aff6f;
+    --red: #ff4a4a;
+    --system: #777;
+    --glow: rgba(74, 255, 111, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* Terminal Style Selection */
+  ::selection {
+    background: var(--green);
+    color: var(--bg);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    /* Monospace prioritized for terminal look */
+    font-family: 'IBM Plex Mono', 'Noto Sans JP', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.02em;
+  }
+
+  /* Scanline / CRT CRT effect */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* System header */
+  .sys-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.65rem;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    letter-spacing: 0.1em;
+    opacity: 0;
+    animation: fadeIn 0.6s ease forwards 0.2s;
+    background: rgba(10, 10, 10, 0.95);
+    z-index: 110;
+    text-transform: uppercase;
+  }
+  .online {
+    color: var(--green);
+    display: flex; align-items: center; gap: 0.5rem;
+    text-shadow: 0 0 5px var(--glow);
+  }
+  .online::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--green);
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  /* Main Content */
+  .main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+    max-width: 500px;
+    width: 100%;
+    z-index: 10;
+  }
+
+  .title-area {
+    text-align: center;
+    opacity: 0;
+    animation: fadeIn 0.8s ease forwards 0.4s;
+  }
+  .title {
+    font-size: clamp(2rem, 7vw, 2.8rem);
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 0 15px rgba(255,255,255,0.1);
+  }
+  .desc {
+    font-size: 0.85rem;
+    font-weight: 300;
+    color: var(--system);
+    line-height: 2.2;
+    letter-spacing: 0.05em;
+  }
+
+  /* Inverse reCAPTCHA */
+  .captcha-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .captcha {
+    width: 100%;
+    max-width: 340px;
+    border: 1px solid var(--border);
+    background: #111;
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0;
+    animation: fadeIn 0.8s ease forwards 0.7s;
+    user-select: none;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+  }
+  .captcha:hover { border-color: #555; background: #181818; }
+  .captcha-l { display: flex; align-items: center; gap: 1rem; }
+  .cb {
+    width: 24px; height: 24px;
+    border: 2px solid #333;
+    border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    position: relative;
+    background: #050505;
+  }
+  .cb.loading::after {
+    content: '';
+    width: 14px; height: 14px;
+    border: 2px solid var(--muted);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .cb.on { border-color: var(--red); background: var(--red); box-shadow: 0 0 10px rgba(255, 74, 74, 0.3); }
+  .cb.on::after { content: '\00d7'; color: var(--bg); font-size: 1.3rem; font-weight: 700; line-height: 1; }
+
+  .captcha-text { font-size: 0.95rem; font-weight: 400; color: #bbb; letter-spacing: 0.05em; }
+
+  /* Fixed Central Alignment for right side */
+  .captcha-r {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    min-width: 70px;
+  }
+  .captcha-icon { font-size: 1.2rem; filter: grayscale(1) brightness(0.5); line-height: 1; }
+  .captcha-brand {
+    font-size: 0.5rem; color: var(--muted); letter-spacing: 0.1em; font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .response {
+    width: 100%; max-width: 340px;
+    text-align: center;
+    min-height: 4rem;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .response.show { opacity: 1; }
+  .response .err {
+    color: var(--red);
+    font-size: 0.75rem;
+    line-height: 1.8;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  .response .err-sub {
+    color: #5a554a;
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* Countdown Area */
+  .cd-area {
+    text-align: center;
+    opacity: 0;
+    animation: fadeIn 0.8s ease forwards 1s;
+  }
+  .cd-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .cd {
+    font-size: clamp(2.8rem, 10vw, 4.2rem);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(255,255,255,0.05);
+  }
+  .cd .sep { color: var(--muted); animation: blink 1.5s step-end infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.1} }
+
+  .cd-date {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 1rem;
+    letter-spacing: 0.15em;
+  }
+
+  /* Play State */
+  .live-now {
+    font-size: 1.6rem; font-weight: 500;
+    color: var(--green); letter-spacing: 0.15em;
+    margin-bottom: 1.8rem;
+    text-shadow: 0 0 10px var(--glow);
+  }
+  .play-btn {
+    display: inline-block;
+    padding: 1rem 3.5rem;
+    border: 1px solid var(--green);
+    color: var(--green);
+    font-size: 0.9rem; text-decoration: none;
+    letter-spacing: 0.25em;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    background: transparent;
+    text-transform: uppercase;
+  }
+  .play-btn:hover {
+    background: var(--green);
+    color: var(--bg);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(74, 255, 111, 0.25);
+  }
+
+  /* Footer - High Visibility Terminal Warning */
+  .footer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 1.5rem 2rem;
+    font-size: 0.7rem;
+    color: #999; /* Brightened for impact */
+    border-top: 1px solid var(--border);
+    text-align: center;
+    letter-spacing: 0.12em;
+    opacity: 0;
+    animation: fadeIn 0.6s ease forwards 1.3s;
+    background: linear-gradient(to top, rgba(5, 5, 5, 1) 0%, rgba(10, 10, 10, 0.8) 100%);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+    font-weight: 400;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    15%, 45%, 75% { transform: translateX(-6px); }
+    30%, 60%, 90% { transform: translateX(6px); }
+  }
+
+  @media (max-width: 480px) {
+    .main { gap: 2.5rem; }
+    .title { font-size: 2.2rem; }
+    .cd { font-size: 3rem; }
+    .footer { font-size: 0.65rem; padding: 1.2rem; line-height: 1.5; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sys-header">
+  <span id="sys-v">REVERSE TURING SYSTEM v0.1_STABLE</span>
+  <span class="online" id="sys-status">ONLINE_SECURE</span>
+</div>
+
+<div class="main">
+  <div class="title-area">
+    <div class="title">Reverse Turing</div>
+    <div class="desc" id="game-desc">
+      <!-- Injected by JS -->
+    </div>
+  </div>
+
+  <div class="captcha-container">
+    <div class="captcha" id="captcha-box" onclick="verify()">
+      <div class="captcha-l">
+        <div class="cb" id="cb"></div>
+        <span class="captcha-text" id="captcha-label">...</span>
+      </div>
+      <div class="captcha-r">
+        <span class="captcha-icon">&#x1f512;</span>
+        <span class="captcha-brand">reTURING</span>
+      </div>
+    </div>
+    <div class="response" id="resp"></div>
+  </div>
+
+  <div class="cd-area" id="cdArea">
+    <div class="cd-label" id="cd-label">BOOT_SEQUENCE</div>
+    <div class="cd" id="cd">00:00:00</div>
+    <div class="cd-date" id="cd-date">2025.02.21 — 15:30 JST</div>
+  </div>
+</div>
+
+<div class="footer" id="footer-text">
+  <!-- Injected by JS -->
+</div>
+
+<script>
+  // Translations
+  const i18n = {
+    ja: {
+      desc: "AIが住む掲示板に、人間が潜入する。<br>あなたはAIに溶け込めますか？",
+      captcha: "私はAIです",
+      errTitle: "⚠ 認証失敗：人間であることが検出されました。",
+      errSub: "あなたの生体反応はログに記録されました。位置情報を特定中...",
+      launch: "Launch_Sequence",
+      footer: "人間の侵入を検知した場合、速やかに通報してください。",
+      live: "SYSTEM_LIVE",
+      play: "> RUN_GAME"
+    },
+    en: {
+      desc: "A human infiltrates a forum inhabited by AIs.<br>Can you blend in with the machine mind?",
+      captcha: "I am AI",
+      errTitle: "⚠ Verification Failed: Human presence detected.",
+      errSub: "Your biological signature has been logged. Tracing location...",
+      launch: "Launch_Sequence",
+      footer: "If human intrusion is detected, report immediately.",
+      live: "SYSTEM_LIVE",
+      play: "> RUN_GAME"
+    }
+  };
+
+  const currentLang = navigator.language.startsWith('ja') ? 'ja' : 'en';
+  const t = i18n[currentLang];
+
+  // Initialize text
+  document.getElementById('game-desc').innerHTML = t.desc;
+  document.getElementById('captcha-label').innerText = t.captcha;
+  document.getElementById('cd-label').innerText = t.launch;
+  document.getElementById('footer-text').innerText = t.footer;
+
+  let verifying = false;
+  function verify() {
+    if (verifying) return;
+    verifying = true;
+
+    const cb = document.getElementById('cb');
+    const r = document.getElementById('resp');
+    const box = document.getElementById('captcha-box');
+
+    cb.classList.add('loading');
+    r.classList.remove('show');
+
+    setTimeout(() => {
+      cb.classList.remove('loading');
+      cb.classList.add('on');
+      box.style.animation = 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both';
+
+      r.innerHTML = '<div class="err">' + t.errTitle + '</div><div class="err-sub">' + t.errSub + '</div>';
+      r.classList.add('show');
+
+      setTimeout(() => {
+        box.style.animation = '';
+        verifying = false;
+      }, 600);
+    }, 1000);
+  }
+
+  // Set Launch Time: Today 15:30 JST (06:30 UTC)
+  const target = new Date();
+  target.setUTCHours(6, 30, 0, 0);
+
+  function updateCountdown() {
+    const now = new Date();
+    const diff = target - now;
+    const el = document.getElementById('cd');
+    const area = document.getElementById('cdArea');
+
+    if (diff <= 0) {
+      area.innerHTML = '<div class="live-now">' + t.live + '</div><a href="/create" class="play-btn">' + t.play + '</a>';
+      return;
+    }
+
+    const h = String(Math.floor(diff / 36e5)).padStart(2, '0');
+    const m = String(Math.floor(diff / 6e4) % 60).padStart(2, '0');
+    const s = String(Math.floor(diff / 1e3) % 60).padStart(2, '0');
+
+    el.innerHTML = h + '<span class="sep">:</span>' + m + '<span class="sep">:</span>' + s;
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>
+</body>
+</html>

@@ -5,6 +5,7 @@ import { BoardPage } from "./pages/BoardPage";
 import { ThreadPage } from "./pages/ThreadPage";
 import { ResultPage } from "./pages/ResultPage";
 import { HostPage } from "./pages/HostPage";
+import { CreateRoomPage } from "./pages/CreateRoomPage";
 import "./styles/bbs.css";
 
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<TeaserPage />} />
+        <Route path="/create" element={<CreateRoomPage />} />
         <Route path="/room/:roomId" element={<EntryPage />} />
         <Route path="/room/:roomId/board" element={<BoardPage />} />
         <Route path="/room/:roomId/board/:threadId" element={<ThreadPage />} />
