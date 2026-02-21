@@ -3,10 +3,9 @@ import type { Room } from "../types";
 
 interface Props {
   room: Room;
-  hasReported: boolean;
 }
 
-export function StatusBar({ room, hasReported }: Props) {
+export function StatusBar({ room }: Props) {
   const [timeLeft, setTimeLeft] = useState("");
 
   useEffect(() => {
@@ -29,17 +28,15 @@ export function StatusBar({ room, hasReported }: Props) {
     return () => clearInterval(id);
   }, [room.roundEndsAt]);
 
-  const active = room.activeIds?.length ?? 0;
-  const eliminated = room.eliminatedIds?.length ?? 0;
+  const spySlots = room.settings?.spySlots ?? 0;
+  const eliminatedSpies = (room.eliminatedIds ?? []).length;
+  const survivingSpies = Math.max(0, spySlots - eliminatedSpies);
 
   return (
-    <div className="status-bar">
-      <span>
-        生存ID: {active}/{active + eliminated}
-      </span>
-      <span>排除済み: {eliminated}</span>
-      <span>{hasReported ? "🔫 通報済み" : "🔫 残り弾: 1"}</span>
-      <span>⏱ {timeLeft || "--:--"}</span>
-    </div>
+    <span className="sys-right">
+      <span className="sys-green">人間 {survivingSpies}/{spySlots}</span>
+      <span className="sys-sep">|</span>
+      <span className="sys-green">{timeLeft || "--:--"}</span>
+    </span>
   );
 }
