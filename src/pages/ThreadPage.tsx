@@ -76,7 +76,7 @@ export function ThreadPage() {
   const handleReport = async (authorId: string) => {
     if (
       !window.confirm(
-        `⚠ 本当にこのIDを通報しますか？\n\nID: ${authorId}\n\n通報は1回だけです。このIDは書き込みが停止します。`
+        `本当にこのIDを通報しますか？\n\nID: ${authorId}\n\n通報は1回だけです。このIDは書き込みが停止します。`
       )
     )
       return;
@@ -98,21 +98,23 @@ export function ThreadPage() {
 
   return (
     <div className="thread-page">
+      <header className="board-header">
+        <div className="sys-bar">
+          <span>REVERSE TURING SYSTEM v0.1</span>
+          {room.status === "playing" && <StatusBar room={room} />}
+        </div>
+      </header>
+
       <div className="thread-header">
         <Link to={`/room/${roomId}/board`}>← 戻る</Link>
         <h2>【{thread.title}】</h2>
       </div>
 
-      {room.status === "playing" && (
-        <StatusBar room={room} hasReported={hasReported} />
-      )}
-
       <div className="posts-container">
-        {/* >>1 system post */}
         <div className="post post-system">
           <div className="post-header">
-            <span className="post-number">&gt;&gt;1</span>{" "}
-            <span className="post-name">🤖 管理AI</span>{" "}
+            <span className="post-number">1</span>{" "}
+            <span className="post-name">管理AI</span>{" "}
             <span className="post-id">ID:SYSTEM</span>
           </div>
           <div className="post-content">{thread.openingPost}</div>
@@ -122,25 +124,24 @@ export function ThreadPage() {
           const eliminated = room.eliminatedIds?.includes(post.authorId);
           return (
             <div key={`${post.threadId}-${post.postNumber}`}>
-              <PostComponent post={post} />
-              {/* Report button: detective only, not reported, not system, active ID */}
-              {!isSpy &&
-                !hasReported &&
-                room.status === "playing" &&
-                !eliminated && (
-                  <button
-                    className="report-btn"
-                    onClick={() => handleReport(post.authorId)}
-                  >
-                    通報
-                  </button>
-                )}
-              {/* Elimination notice */}
+              <PostComponent
+                post={post}
+                headerAction={
+                  !isSpy && !hasReported && room.status === "playing" && !eliminated ? (
+                    <button
+                      className="report-btn"
+                      onClick={() => handleReport(post.authorId)}
+                    >
+                      通報
+                    </button>
+                  ) : undefined
+                }
+              />
               {eliminated &&
                 posts.filter((p) => p.authorId === post.authorId).at(-1)
                   ?.postNumber === post.postNumber && (
                   <div className="elimination-notice">
-                    ⚠ ID:{post.authorId}{" "}
+                    ID:{post.authorId}{" "}
                     のアカウントは不正利用の疑いにより凍結されました。
                   </div>
                 )}
@@ -150,7 +151,6 @@ export function ThreadPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Spy post form */}
       {isSpy && room.status === "playing" && !isEliminated && (
         <div className="post-form">
           <textarea
@@ -170,7 +170,7 @@ export function ThreadPage() {
 
       {isSpy && isEliminated && (
         <div className="elimination-notice">
-          ⚠ あなたのアカウントは凍結されました。書き込みはできません。
+          あなたのアカウントは凍結されました。書き込みはできません。
         </div>
       )}
     </div>

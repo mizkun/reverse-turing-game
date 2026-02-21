@@ -1,11 +1,13 @@
 import type { Post as PostType } from "../types";
+import type { ReactNode } from "react";
 
 interface Props {
   post: PostType;
   isSystem?: boolean;
+  headerAction?: ReactNode;
 }
 
-export function Post({ post, isSystem }: Props) {
+export function Post({ post, isSystem, headerAction }: Props) {
   const time = post.createdAt?.toDate
     ? post.createdAt.toDate().toLocaleTimeString("ja-JP", {
         hour: "2-digit",
@@ -17,7 +19,7 @@ export function Post({ post, isSystem }: Props) {
   return (
     <div className={`post ${isSystem ? "post-system" : ""}`}>
       <div className="post-header">
-        <span className="post-number">&gt;&gt;{post.postNumber}</span>{" "}
+        <span className="post-number">{post.postNumber}</span>{" "}
         <span className="post-name">
           {isSystem ? "\uD83E\uDD16 管理AI" : post.authorName}
         </span>{" "}
@@ -25,6 +27,7 @@ export function Post({ post, isSystem }: Props) {
           ID:{isSystem ? "SYSTEM" : post.authorId}
         </span>{" "}
         <span className="post-time">{time}</span>
+        {headerAction}
       </div>
       <div className="post-content">{post.content}</div>
     </div>
