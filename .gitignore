@@ -13,6 +13,7 @@ functions/lib/
 
 # Firebase
 .firebase/
+*.secret.local
 
 # Misc
 .DS_Store
