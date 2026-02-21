@@ -20,13 +20,13 @@ export function usePosts(roomId: string, threadId?: string) {
       ? query(
           postsRef,
           where("threadId", "==", threadId),
-          orderBy("createdAt", "asc")
+          orderBy("createdAt", "desc")
         )
-      : query(postsRef, orderBy("createdAt", "asc"));
+      : query(postsRef, orderBy("createdAt", "desc"));
 
     const unsub = onSnapshot(q, (snap) => {
       const data = snap.docs.map((d) => ({ ...d.data() } as Post));
-      setPosts(data);
+      setPosts(data.reverse()); // reverse to show oldest first
     });
     return unsub;
   }, [roomId, threadId]);

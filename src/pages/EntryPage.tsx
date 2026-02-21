@@ -33,7 +33,10 @@ export function EntryPage() {
         document.cookie = `spy_room_id=${roomId}; path=/; max-age=86400`;
         setStatus("spy");
       } else {
-        // Detective path
+        // Detective path - clear any spy cookies for this room
+        document.cookie = "spy_token=; path=/; max-age=0";
+        document.cookie = "spy_author_id=; path=/; max-age=0";
+        document.cookie = "spy_room_id=; path=/; max-age=0";
         await callJoinAsDetective({ roomId });
         setStatus("detective");
       }

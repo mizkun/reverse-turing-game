@@ -3,6 +3,7 @@ import { defineSecret } from "firebase-functions/params";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { generatePost } from "./aiEngine";
 import { FALLBACK_POSTS } from "./fallbackPosts";
+import { endRoundAndReveal } from "./endRound";
 
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
 const db = getFirestore();
@@ -21,7 +22,7 @@ export const tickAiPosts = onCall(
 
     // Auto-end if past roundEndsAt
     if (room.roundEndsAt && room.roundEndsAt.toDate() < new Date()) {
-      await roomRef.update({ status: "revealed" });
+      await endRoundAndReveal(roomId);
       return { posted: 0, ended: true };
     }
 

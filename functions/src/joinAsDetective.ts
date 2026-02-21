@@ -21,9 +21,11 @@ export const joinAsDetective = onCall(
       throw new HttpsError("not-found", "ルームが見つかりません");
     }
 
-    // Late join: just increment detective count
+    // Increment detective count immediately
+    await roomRef.update({ detectiveCount: FieldValue.increment(1) });
+
+    // Late join or cap reached: skip persona generation
     if (room.status !== "waiting") {
-      await roomRef.update({ detectiveCount: FieldValue.increment(1) });
       return { success: true, lateJoin: true };
     }
 
@@ -32,35 +34,40 @@ export const joinAsDetective = onCall(
       .get();
     const currentCount = personasSnap.size;
 
-    // Cap at 10 AI personas
     if (currentCount >= 10) {
-      await roomRef.update({ detectiveCount: FieldValue.increment(1) });
       return { success: true, aiAdded: false };
     }
 
-    // Generate new AI persona
+    // Generate persona in background (don't block response)
     const authorId = generateId(8);
-    let persona;
-    try {
-      persona = await generatePersona(geminiApiKey.value());
-    } catch {
-      persona = FALLBACK_PERSONAS[currentCount % FALLBACK_PERSONAS.length];
-    }
+    const personaPromise = (async () => {
+      let persona;
+      try {
+        persona = await generatePersona(geminiApiKey.value());
+      } catch {
+        persona = FALLBACK_PERSONAS[currentCount % FALLBACK_PERSONAS.length];
+      }
 
-    const batch = db.batch();
-    batch.set(db.collection(`rooms/${roomId}/personas`).doc(), {
-      bigFive: persona.bigFive,
-      name: persona.name,
-      systemPrompt: persona.systemPrompt,
-      postFrequency: persona.postFrequency,
-      assignedAuthorId: authorId,
-      eliminated: false,
-    });
-    batch.update(roomRef, {
-      detectiveCount: FieldValue.increment(1),
-      activeIds: FieldValue.arrayUnion(authorId),
-    });
-    await batch.commit();
+      const batch = db.batch();
+      batch.set(db.collection(`rooms/${roomId}/personas`).doc(), {
+        bigFive: persona.bigFive,
+        name: persona.name,
+        systemPrompt: persona.systemPrompt,
+        postFrequency: persona.postFrequency,
+        assignedAuthorId: authorId,
+        eliminated: false,
+      });
+      batch.update(roomRef, {
+        activeIds: FieldValue.arrayUnion(authorId),
+      });
+      await batch.commit();
+    })();
+
+    // Wait for persona but with a short timeout - use fallback if slow
+    await Promise.race([
+      personaPromise,
+      new Promise((resolve) => setTimeout(resolve, 5000)),
+    ]);
 
     return { success: true, aiAdded: true };
   }

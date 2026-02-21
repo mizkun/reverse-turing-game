@@ -11,8 +11,9 @@ function randomBigFive() {
   };
 }
 
+// extraversion 5 → 60s, extraversion 1 → 300s
 function calcPostFrequency(extraversion: number): number {
-  return Math.round(240 - extraversion * 40);
+  return Math.round(360 - extraversion * 60);
 }
 
 export async function generatePersona(apiKey: string) {
@@ -31,10 +32,15 @@ export async function generatePersona(apiKey: string) {
 - 協調性: ${bigFive.agreeableness}
 - 神経症傾向: ${bigFive.neuroticism}
 
+## 重要な制約
+- このキャラは5chの住人なので、投稿は自然な長さ（10〜100文字）
+- 「草」「それな」「わかる」レベルの短さも普通にある
+- 長文（100文字超）を書くキャラは作らないこと
+
 ## 出力（JSON形式のみ。マークダウンや説明は不要）
 {
   "name": "このキャラの内部名（例: ROM専気味の公務員、煽り耐性ゼロの大学生）",
-  "systemPrompt": "このキャラとして掲示板に投稿するための指示文。口調・一人称・語尾・癖・絵文字の使用有無・1レスの長さ・禁止表現を全て含める。5chのマイルドな雰囲気（スラングはあるが攻撃性は低め）を反映すること。【禁止表現】として「確かに」「なるほど」「それは興味深い」「いい質問ですね」「〜と言えるでしょう」「素晴らしい」を必ず含めること。"
+  "systemPrompt": "このキャラとして掲示板に投稿するための指示文。口調・一人称・語尾・癖を含める。【絶対ルール】自然な長さ（10〜100文字）・最大2行・長文禁止・説明口調禁止。【禁止表現】「確かに」「なるほど」「それは興味深い」「いい質問ですね」「〜と言えるでしょう」「素晴らしい」"
 }`;
 
   const result = await model.generateContent(prompt);
@@ -63,9 +69,10 @@ export const FALLBACK_PERSONAS = [
       neuroticism: 2,
     },
     name: "テンション高い大学生",
-    systemPrompt: `あなたは匿名掲示板の住人です。大学生で明るい。1〜2行で返信。「w」「草」「〜〜」をよく使う。たまに絵文字も使う。
+    systemPrompt: `あなたは5chの住人。大学生で明るい。「w」「草」をよく使う。
+【絶対ルール】最大30文字・1行・長文禁止・説明口調禁止
 【禁止表現】「確かに」「なるほど」「それは興味深い」「いい質問ですね」「〜と言えるでしょう」「素晴らしい」`,
-    postFrequency: 40,
+    postFrequency: 60,
   },
   {
     bigFive: {
@@ -76,9 +83,10 @@ export const FALLBACK_PERSONAS = [
       neuroticism: 3,
     },
     name: "無口なエンジニア",
-    systemPrompt: `あなたは匿名掲示板の住人です。無口でぶっきらぼう。1行で返信。句読点少なめ。
+    systemPrompt: `あなたは5chの住人。無口でぶっきらぼう。句読点少なめ。
+【絶対ルール】最大30文字・1行・長文禁止・説明口調禁止
 【禁止表現】「確かに」「なるほど」「それは興味深い」「いい質問ですね」「〜と言えるでしょう」「素晴らしい」`,
-    postFrequency: 200,
+    postFrequency: 300,
   },
   {
     bigFive: {
@@ -89,8 +97,9 @@ export const FALLBACK_PERSONAS = [
       neuroticism: 1,
     },
     name: "穏やかな映画好き",
-    systemPrompt: `あなたは匿名掲示板の住人です。丁寧語で話す。映画の話が好き。2行で返信。
+    systemPrompt: `あなたは5chの住人。丁寧語で話す。映画の話が好き。
+【絶対ルール】最大30文字・1行・長文禁止・説明口調禁止
 【禁止表現】「確かに」「なるほど」「それは興味深い」「いい質問ですね」「〜と言えるでしょう」「素晴らしい」「〜ですね」`,
-    postFrequency: 120,
+    postFrequency: 180,
   },
 ];
