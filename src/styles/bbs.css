@@ -1,0 +1,159 @@
+:root {
+  --bg: #1a1a2e;
+  --bg-post: #16213e;
+  --text: #a8b2c1;
+  --text-id: #e2b714;
+  --text-system: #ff6b6b;
+  --border: #2a2a4a;
+  --accent: #0f3460;
+  --green: #4ecca3;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "MS PGothic", "Hiragino Kaku Gothic Pro", monospace;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 8px;
+  min-height: 100vh;
+}
+
+a { color: var(--text-id); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.loading { text-align: center; padding: 40px; color: var(--text); }
+
+/* Entry Page */
+.entry-page {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh;
+}
+.recaptcha-container { text-align: center; }
+.recaptcha-box {
+  display: inline-flex; align-items: center; gap: 12px;
+  border: 2px solid var(--border); padding: 16px 24px;
+  cursor: pointer; font-size: 1.1em;
+  background: var(--bg-post); border-radius: 4px;
+  transition: border-color 0.2s;
+}
+.recaptcha-box:hover { border-color: var(--text-id); }
+.recaptcha-box.checked { border-color: var(--green); }
+.recaptcha-check { font-size: 1.4em; }
+.entry-result { padding: 20px; text-align: center; }
+.entry-result.spy { color: var(--text-system); }
+.entry-result.detective { color: var(--green); }
+.entry-sub { margin-top: 8px; font-size: 0.9em; color: var(--text); }
+
+/* Board Page */
+.board-header { text-align: center; padding: 16px 0 8px; border-bottom: 1px solid var(--border); }
+.board-header h1 { font-size: 1.4em; color: var(--green); }
+.flavor-text { font-size: 0.8em; color: #666; margin-top: 4px; }
+.waiting-notice { text-align: center; padding: 12px; color: var(--text-id); background: var(--accent); margin: 8px 0; }
+
+.thread-list { margin: 12px 0; }
+.thread-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.thread-item:hover { background: var(--bg-post); }
+.thread-title { color: var(--text); }
+.thread-count { color: var(--text-id); font-size: 0.9em; }
+
+.spy-notice {
+  text-align: center; padding: 8px; margin: 8px 0;
+  background: rgba(255, 107, 107, 0.1); border: 1px solid var(--text-system);
+  color: var(--text-system); font-size: 0.9em;
+}
+
+.board-footer { text-align: center; padding: 16px 0; font-size: 0.75em; color: #444; border-top: 1px solid var(--border); margin-top: 16px; }
+
+/* Status Bar */
+.status-bar {
+  display: flex; justify-content: space-around; padding: 8px;
+  background: var(--accent); border: 1px solid var(--border);
+  margin: 8px 0; font-size: 0.85em;
+}
+
+/* Thread Page */
+.thread-header { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.thread-header h2 { font-size: 1.1em; }
+
+.posts-container { margin: 8px 0; }
+
+.post {
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+}
+.post-system { background: var(--accent); }
+.post-header { font-size: 0.85em; margin-bottom: 4px; }
+.post-number { color: var(--green); font-weight: bold; }
+.post-name { color: var(--green); }
+.post-id { color: var(--text-id); }
+.post-time { color: #555; }
+.post-content { line-height: 1.6; white-space: pre-wrap; }
+
+.report-btn {
+  display: inline-block; margin: 2px 12px 4px;
+  background: none; border: none; color: #666;
+  cursor: pointer; font-size: 0.8em; font-family: inherit;
+}
+.report-btn:hover { color: var(--text-system); }
+
+.elimination-notice {
+  border: 1px solid var(--border); padding: 8px 12px; margin: 8px 0;
+  color: var(--text-system); font-size: 0.9em;
+}
+
+/* Post Form (Spy) */
+.post-form {
+  position: sticky; bottom: 0;
+  padding: 12px; background: var(--bg-post);
+  border-top: 1px solid var(--border);
+}
+.post-form textarea {
+  width: 100%; background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); padding: 8px;
+  font-family: inherit; font-size: 0.95em; resize: vertical;
+}
+.post-form button {
+  margin-top: 8px; padding: 8px 24px;
+  background: var(--accent); color: var(--text);
+  border: 1px solid var(--border); cursor: pointer;
+  font-family: inherit;
+}
+.post-form button:hover { background: var(--green); color: var(--bg); }
+.post-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Host Page */
+.host-page { padding: 16px; }
+.host-page h1 { margin-bottom: 16px; }
+.host-info { margin: 12px 0; padding: 12px; background: var(--bg-post); border: 1px solid var(--border); }
+.host-info p { margin: 4px 0; }
+.host-section { margin: 16px 0; }
+.host-section h2 { font-size: 1em; margin-bottom: 8px; }
+.url-display { font-size: 0.85em; color: var(--text-id); word-break: break-all; padding: 8px; background: var(--bg-post); border: 1px solid var(--border); }
+.qr-container { margin: 12px 0; text-align: center; background: #fff; display: inline-block; padding: 12px; }
+.host-actions { margin: 20px 0; }
+.btn-start, .btn-reveal {
+  padding: 12px 32px; font-size: 1.1em;
+  border: none; cursor: pointer; font-family: inherit;
+  border-radius: 4px;
+}
+.btn-start { background: var(--green); color: var(--bg); }
+.btn-reveal { background: var(--text-system); color: #fff; }
+
+/* Result Page */
+.result-page { text-align: center; padding: 40px 16px; }
+.result-page h1 { margin-bottom: 24px; }
+.result-winner { font-size: 1.4em; margin: 16px 0; }
+.result-stats { margin: 16px 0; }
+.result-stats strong { font-size: 2em; color: var(--text-id); }
+.score-desc { margin-top: 8px; color: #888; }
+.result-info { margin-top: 24px; font-size: 0.9em; color: #666; }
+
+/* Teaser Page */
+.teaser-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+.teaser-page h1 { font-size: 2em; color: var(--green); }
