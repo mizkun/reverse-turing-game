@@ -1,0 +1,77 @@
+# VibeFlow v3 Role-Based Access Policy
+roles:
+  iris:
+    can_read:
+      - "vision.md"
+      - "spec.md"
+      - "plan.md"
+      - ".vibe/context/**"
+      - ".vibe/references/**"
+      - ".vibe/archive/**"
+      - ".vibe/state.yaml"
+      - "src/**"
+    can_write:
+      - "vision.md"
+      - "spec.md"
+      - "plan.md"
+      - ".vibe/context/**"
+      - ".vibe/references/**"
+      - ".vibe/archive/**"
+      - ".vibe/state.yaml"
+    can_execute:
+      - "gh issue *"
+      - "gh project *"
+      - "git log"
+      - "git diff"
+
+  product_manager:
+    can_read:
+      - "vision.md"
+      - "spec.md"
+      - "plan.md"
+      - ".vibe/state.yaml"
+      - ".vibe/qa-reports/**"
+    can_write:
+      - "plan.md"
+      - ".vibe/state.yaml"
+    can_execute:
+      - "gh issue *"
+
+  engineer:
+    can_read:
+      - "spec.md"
+      - "src/**"
+      - ".vibe/state.yaml"
+    can_write:
+      - "src/**"
+      - "**/*.test.*"
+      - "**/__tests__/**"
+      - ".vibe/state.yaml"
+    can_create:
+      - "src/**"
+      - "**/*.test.*"
+
+  qa_engineer:
+    can_read:
+      - "spec.md"
+      - "src/**"
+      - ".vibe/state.yaml"
+      - ".vibe/qa-reports/**"
+    can_write:
+      - ".vibe/test-results.log"
+      - ".vibe/qa-reports/**"
+      - ".vibe/state.yaml"
+    can_create:
+      - ".vibe/qa-reports/**"
+      - ".vibe/test-results.log"
+
+  infra_manager:
+    can_read:
+      - ".vibe/hooks/**"
+      - ".vibe/state.yaml"
+      - ".claude/settings.json"
+    can_write:
+      - ".vibe/hooks/**"
+      - ".vibe/state.yaml"
+    can_create:
+      - ".vibe/hooks/**"

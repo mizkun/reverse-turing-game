@@ -1,0 +1,28 @@
+# VibeFlow v3 State
+current_issue: null
+current_role: "Iris"
+
+phase: discovery
+
+# Issues tracking (detailed state on GitHub labels)
+issues_recent: []
+
+# Quick fixes tracking
+quick_fixes: []
+
+# Discovery phase tracking
+discovery:
+  active: true
+  last_session: "2026-02-21"
+
+# Safety tracking
+safety:
+  ui_mode: atomic
+  destructive_op: require_confirmation
+  max_fix_attempts: 3
+  failed_approach_log: []
+
+# Infrastructure Manager audit log
+infra_log:
+  hook_changes: []
+  rollback_pending: false

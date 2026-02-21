@@ -1,0 +1,50 @@
+# Vibe Coding Framework Version Information
+framework:
+  version: "3.1.0"
+  name: "GitHub Issues, Iris, Multi-Terminal, 3-Tier Context"
+  installed_at: "2026-02-21T10:26:30+09:00"
+
+  # Version compatibility
+  minimum_compatible: "1.0.0"
+
+  # Features enabled
+  features:
+    simplified_state: true
+    verification_system: true
+    quick_fix_mode: true
+    e2e_testing: true
+    notifications: true
+    hooks: true
+    subagents: true
+    skills: true
+    access_guard: true
+    discovery_phase: true
+    agent_team_mode: true
+    context_fork_mode: true
+    safety_rules: true
+    write_guard: true
+    infra_manager_role: true
+    # New in 3.0.0
+    github_issues: true
+    iris_role: true
+    multi_terminal: true
+    three_tier_context: true
+
+  # Claude Code integration
+  claude_code:
+    settings_file: ".claude/settings.json"
+    hooks:
+      - PreToolUse (validate_access.py)
+      - PreToolUse (validate_write.sh)
+      - PostToolUse (task_complete.sh)
+      - Stop (waiting_input.sh)
+    skills:
+      - vibeflow-issue-template
+      - vibeflow-tdd
+    subagents:
+      - qa-acceptance
+      - code-reviewer
+      - test-runner
+
+  # Project repository
+  repository_url: "https://github.com/mizkun/vibeflow"
